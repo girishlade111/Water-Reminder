@@ -1,0 +1,144 @@
+import { useState, useEffect } from 'react'
+import { Button } from "/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "/components/ui/card"
+import { Plus, Minus } from 'lucide-react'
+
+export default function WaterReminder() {
+  const [dailyGoal, setDailyGoal] = useState<number>(2000) // Default goal in ml
+  const [currentIntake, setCurrentIntake] = useState<number>(0)
+  const [progressPercentage, setProgressPercentage] = useState<number>(0)
+  const [lastDrink, setLastDrink] = useState<string>('No drinks logged yet')
+
+  // Calculate progress percentage whenever intake changes
+  useEffect(() => {
+    const percentage = Math.min((currentIntake / dailyGoal) * 100, 100)
+    setProgressPercentage(percentage)
+  }, [currentIntake, dailyGoal])
+
+  const addWater = (amount: number) => {
+    const newIntake = currentIntake + amount
+    setCurrentIntake(newIntake)
+    setLastDrink(new Date().toLocaleTimeString())
+  }
+
+  const resetDailyIntake = () => {
+    setCurrentIntake(0)
+    setLastDrink('No drinks logged yet')
+  }
+
+  const updateDailyGoal = (newGoal: number) => {
+    if (newGoal > 0) {
+      setDailyGoal(newGoal)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Water Tracker</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Progress Widget */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-50">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-blue-800">Daily Goal</span>
+              <span className="text-sm font-medium text-blue-800">
+                {currentIntake}ml / {dailyGoal}ml
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div
+                className="bg-blue-500 h-4 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <div className="mt-2 text-center">
+              <span className="text-sm text-blue-800">
+                {progressPercentage.toFixed(0)}% completed
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Add Buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            {[100, 250, 500].map((amount) => (
+              <Button
+                key={amount}
+                variant="outline"
+                onClick={() => addWater(amount)}
+                className="flex items-center justify-center gap-1"
+              >
+                <Plus className="h-4 w-4" />
+                {amount}ml
+              </Button>
+            ))}
+          </div>
+
+          {/* Custom Add */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => addWater(-100)}
+              disabled={currentIntake <= 0}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 text-center">
+              <span className="text-sm text-gray-500">Adjust intake</span>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => addWater(100)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Goal Setting */}
+          <div className="space-y-2">
+            <label htmlFor="goal" className="block text-sm font-medium text-gray-700">
+              Daily Goal (ml)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                id="goal"
+                value={dailyGoal}
+                onChange={(e) => updateDailyGoal(Number(e.target.value))}
+                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+                min="100"
+                step="100"
+              />
+              <Button
+                variant="outline"
+                onClick={() => updateDailyGoal(2000)}
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="text-center text-sm text-gray-500">
+            Last drink: {lastDrink}
+          </div>
+        </CardContent>
+
+        {/* Reset Button */}
+        <div className="px-6 pb-4">
+          <Button
+            variant="destructive"
+            onClick={resetDailyIntake}
+            className="w-full"
+            disabled={currentIntake === 0}
+          >
+            Reset Daily Intake
+          </Button>
+        </div>
+      </Card>
+    </div>
+  )
+}
